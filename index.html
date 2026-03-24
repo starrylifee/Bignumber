@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>조 단위 숫자 읽기 퀴즈</title>
+<meta name="description" content="만·억·조 단위 숫자를 한글로, 한글을 숫자로 변환하는 두뇌 트레이닝 퀴즈"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ind:#818cf8;--ind-dark:#6366f1;--ind-darker:#4338ca;
+  --ind-glow:rgba(99,102,241,.35);
+  --grn:#22c55e;--red:#ef4444;--gold:#f59e0b;
+  --bg:#0f0f1a;--surface:#181828;--card:#1e1e32;
+  --border:rgba(255,255,255,.08);
+  --text:#e2e8f0;--muted:#94a3b8;
+  --r:18px;--r-sm:12px;
+  --sh:0 8px 32px rgba(0,0,0,.4);
+  --sh-lg:0 20px 60px rgba(0,0,0,.5);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  background-image:
+    radial-gradient(ellipse at 20% 20%,rgba(99,102,241,.15) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 80%,rgba(139,92,246,.1) 0%,transparent 60%);
+}
+
+/* ── SCREENS ── */
+.screen{display:none;width:100%}
+.screen.active{display:flex}
+#screen-start,#screen-end{
+  align-items:center;justify-content:center;min-height:100vh;
+}
+#screen-game{
+  flex-direction:column;align-items:center;gap:14px;
+  min-height:100vh;padding:16px;
+}
+@media(min-width:820px){
+  #screen-game{flex-direction:row;align-items:stretch;justify-content:center;padding:24px}
+}
+
+/* ── START CARD ── */
+.start-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  box-shadow:var(--sh-lg),0 0 0 1px rgba(99,102,241,.1);
+  padding:48px 36px;
+  max-width:440px;width:100%;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.start-card::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(99,102,241,.25),transparent 70%);
+  pointer-events:none;
+}
+.hero-icon{
+  width:100px;height:100px;
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 28px;
+  font-size:52px;line-height:1;
+  box-shadow:0 0 0 8px rgba(245,158,11,.15),0 8px 32px rgba(245,158,11,.4);
+  animation:float 3s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.start-card h1{
+  font-size:30px;font-weight:900;
+  background:linear-gradient(135deg,#c7d2fe,#a5b4fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:12px;
+}
+.start-card .subtitle{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.8}
+.start-card .subtitle strong{color:var(--ind);font-weight:700;-webkit-text-fill-color:initial}
+.start-info{
+  display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;
+}
+.info-chip{
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);
+  color:#a5b4fc;padding:7px 16px;border-radius:100px;font-size:13px;font-weight:700;
+}
+/* 시간 선택 */
+.time-section{
+  margin-bottom:28px;
+}
+.time-label{color:var(--muted);font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:.3px}
+.time-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.time-btn{
+  width:52px;height:52px;border-radius:12px;
+  border:2px solid rgba(99,102,241,.25);
+  background:rgba(99,102,241,.08);color:#a5b4fc;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .15s,border-color .15s,color .15s,transform .1s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+}
+.time-btn span.min{font-size:18px;font-weight:900;line-height:1}
+.time-btn span.lbl{font-size:10px;opacity:.7}
+.time-btn:hover{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.5);color:#c7d2fe}
+.time-btn.selected{
+  background:linear-gradient(135deg,var(--ind-dark),var(--ind-darker));
+  border-color:var(--ind-dark);color:#fff;
+  box-shadow:0 0 0 3px rgba(99,102,241,.25),0 4px 14px var(--ind-glow);
+  transform:scale(1.08);
+}
+.btn-primary{
+  width:100%;padding:18px;
+  background:linear-gradient(135deg,var(--ind-dark),var(--ind-darker));
+  color:#fff;border:none;border-radius:var(--r-sm);
+  font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 4px 20px var(--ind-glow),0 0 0 1px rgba(99,102,241,.3);
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);
+  border-radius:inherit;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--ind-glow)}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{
+  width:100%;padding:14px;margin-top:12px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:var(--r-sm);color:var(--muted);
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.btn-secondary:hover{background:rgba(255,255,255,.09);color:var(--text);border-color:rgba(255,255,255,.2)}
+
+/* ── GAME: QUESTION PANEL ── */
+.question-panel{
+  background:linear-gradient(160deg,var(--ind-dark),var(--ind-darker),#312e81);
+  border-radius:var(--r);box-shadow:var(--sh-lg);
+  overflow:hidden;display:flex;flex-direction:column;
+  position:relative;width:100%;
+}
+@media(min-width:820px){.question-panel{max-width:520px;flex:1}}
+.q-header{
+  background:rgba(0,0,0,.2);padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.q-mode-badge{
+  background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);
+  padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;
+  letter-spacing:.3px;
+}
+.q-stats{display:flex;gap:8px}
+.stat-pill{
+  display:flex;align-items:center;gap:6px;padding:6px 14px;
+  border-radius:100px;font-size:13px;font-weight:700;color:#fff;
+  background:rgba(255,255,255,.12);
+}
+.stat-pill.urgent{background:var(--red);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.6}}
+.q-body{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:36px 28px;text-align:center;
+}
+.q-hint{color:rgba(255,255,255,.55);font-size:14px;font-weight:500;margin-bottom:20px}
+.q-display{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:16px;padding:32px 20px;width:100%;
+  min-height:150px;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#question-text{
+  color:#fff;font-weight:900;line-height:1.35;
+  word-break:break-all;overflow-wrap:anywhere;
+  max-width:100%;text-align:center;
+}
+.q-display.num-mode #question-text{font-size:clamp(22px,4.5vw,52px)}
+.q-display.kor-mode #question-text{font-size:clamp(16px,2.8vw,28px)}
+.q-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:10;
+  pointer-events:none;opacity:0;transform:scale(.9);
+  transition:opacity .2s,transform .2s;
+}
+.q-overlay.correct{
+  background:rgba(34,197,94,.92);backdrop-filter:blur(4px);
+  opacity:1;transform:scale(1);pointer-events:all;
+}
+.q-overlay .ov-icon{font-size:68px;margin-bottom:10px}
+.q-overlay h2{font-size:34px;font-weight:900;color:#fff}
+.q-overlay .ov-pts{color:rgba(255,255,255,.8);font-size:17px;font-weight:700;margin-top:6px}
+
+/* ── GAME: INPUT PANEL ── */
+.input-panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--sh);
+  padding:20px;display:flex;flex-direction:column;gap:14px;width:100%;
+}
+@media(min-width:820px){.input-panel{max-width:400px;flex:0 0 400px}}
+.input-display{
+  border:2px solid rgba(99,102,241,.25);border-radius:14px;
+  padding:18px 14px;min-height:86px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  background:var(--surface);
+  transition:border-color .2s,background .2s;overflow:hidden;
+}
+.input-display.shake{
+  border-color:var(--red);background:rgba(239,68,68,.1);
+  animation:shake .45s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  15%,45%,75%{transform:translateX(-6px)}
+  30%,60%,90%{transform:translateX(6px)}
+}
+#input-text{font-weight:700;word-break:break-all;overflow-wrap:anywhere}
+.it-kor{font-size:20px;color:#a5b4fc}
+.it-num{font-size:34px;font-variant-numeric:tabular-nums;letter-spacing:-1px;color:var(--text)}
+.it-ph{color:var(--muted);font-size:14px;font-weight:500}
+
+/* ── KEYPAD ── */
+.keypad{display:grid;gap:8px}
+.kor-pad{grid-template-columns:repeat(4,1fr)}
+.num-pad{grid-template-columns:repeat(3,1fr)}
+.key{
+  border:1px solid rgba(99,102,241,.2);border-radius:10px;
+  background:var(--surface);color:#a5b4fc;
+  font-size:17px;font-weight:700;font-family:inherit;
+  padding:14px 6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:background .1s,transform .08s,border-color .1s;line-height:1;
+}
+.key:hover{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#c7d2fe}
+.key:active{transform:scale(.92);background:rgba(99,102,241,.25)}
+.key-num{font-size:20px}
+.key-del{background:rgba(239,68,68,.08);color:#f87171;border-color:rgba(239,68,68,.2)}
+.key-del:hover{background:rgba(239,68,68,.18)}
+.key-clear{background:rgba(255,255,255,.04);color:var(--muted);border-color:var(--border);font-size:13px}
+.key-clear:hover{background:rgba(255,255,255,.09);color:var(--text)}
+.key-submit{
+  background:linear-gradient(135deg,var(--ind-dark),var(--ind-darker));
+  color:#fff;border:none;font-size:15px;
+  box-shadow:0 3px 14px var(--ind-glow);
+}
+.key-submit:hover{box-shadow:0 5px 20px var(--ind-glow)}
+.key-submit:active{transform:scale(.96)}
+.c2{grid-column:span 2}.c3{grid-column:span 3}
+
+/* ── END SCREEN ── */
+.end-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:24px;box-shadow:var(--sh-lg),0 0 0 1px rgba(99,102,241,.1);
+  padding:40px 32px;max-width:460px;width:100%;text-align:center;
+  position:relative;overflow:hidden;
+}
+.end-card::before{
+  content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:240px;height:240px;
+  background:radial-gradient(circle,rgba(245,158,11,.15),transparent 70%);
+  pointer-events:none;
+}
+.end-trophy{
+  width:96px;height:96px;
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:50px;line-height:1;
+  box-shadow:0 0 0 8px rgba(245,158,11,.15),0 8px 32px rgba(245,158,11,.4);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+.end-card h1{font-size:28px;font-weight:900;color:var(--text);margin-bottom:20px}
+.result-box{
+  background:var(--surface);border:1px solid rgba(99,102,241,.2);
+  border-radius:16px;padding:24px;margin-bottom:20px;
+  animation:slideUp .4s ease both .15s;
+}
+@keyframes slideUp{0%{transform:translateY(16px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.result-score-val{font-size:54px;font-weight:900;
+  background:linear-gradient(135deg,#a5b4fc,#818cf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1;margin-bottom:8px;
+}
+.result-meta{color:var(--muted);font-size:15px}
+.result-meta strong{color:var(--grn);font-size:20px;font-weight:700;-webkit-text-fill-color:initial}
+
+/* name input */
+.name-row{display:flex;gap:10px;margin-bottom:16px;animation:slideUp .4s ease both .25s}
+.name-input{
+  flex:1;padding:14px 16px;
+  background:var(--surface);border:1px solid rgba(99,102,241,.3);
+  border-radius:var(--r-sm);color:var(--text);
+  font-family:inherit;font-size:15px;font-weight:700;
+  outline:none;transition:border-color .2s;
+}
+.name-input:focus{border-color:var(--ind-dark);box-shadow:0 0 0 3px rgba(99,102,241,.2)}
+.name-input::placeholder{color:var(--muted);font-weight:400}
+.btn-save{
+  padding:14px 18px;
+  background:linear-gradient(135deg,var(--ind-dark),var(--ind-darker));
+  color:#fff;border:none;border-radius:var(--r-sm);
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  white-space:nowrap;box-shadow:0 3px 14px var(--ind-glow);
+  transition:transform .15s;
+}
+.btn-save:hover{transform:translateY(-1px)}
+.save-msg{font-size:13px;color:var(--grn);margin-bottom:12px;height:18px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.end-btns{display:flex;flex-direction:column;gap:10px}
+
+/* ── LEADERBOARD MODAL ── */
+#lb-modal{
+  display:none;position:fixed;inset:0;z-index:100;
+  align-items:center;justify-content:center;padding:16px;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+}
+#lb-modal.open{display:flex}
+.lb-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:24px;box-shadow:var(--sh-lg);
+  width:100%;max-width:480px;max-height:90vh;display:flex;flex-direction:column;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.lb-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;border-bottom:1px solid var(--border);
+}
+.lb-title{font-size:18px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px}
+.lb-actions{display:flex;gap:8px}
+.lb-btn{
+  padding:8px 14px;border-radius:8px;border:1px solid var(--border);
+  background:rgba(255,255,255,.05);color:var(--muted);
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;gap:6px;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.lb-btn:hover{background:rgba(255,255,255,.1);color:var(--text);border-color:rgba(255,255,255,.2)}
+.lb-btn.danger{color:#f87171;border-color:rgba(239,68,68,.3)}
+.lb-btn.danger:hover{background:rgba(239,68,68,.15);border-color:var(--red)}
+.lb-body{overflow-y:auto;padding:16px 20px;flex:1}
+.lb-empty{text-align:center;padding:40px;color:var(--muted);font-size:15px}
+.lb-row{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 14px;border-radius:12px;margin-bottom:8px;
+  background:var(--surface);border:1px solid var(--border);
+  transition:border-color .15s;position:relative;overflow:hidden;
+}
+.lb-row.rank-1{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06)}
+.lb-row.rank-2{border-color:rgba(148,163,184,.3);background:rgba(148,163,184,.05)}
+.lb-row.rank-3{border-color:rgba(205,127,50,.3);background:rgba(205,127,50,.05)}
+.lb-rank{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;flex-shrink:0;
+  background:rgba(255,255,255,.06);color:var(--muted);
+}
+.lb-rank.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff;font-size:18px}
+.lb-rank.r2{background:linear-gradient(135deg,#94a3b8,#64748b);color:#fff}
+.lb-rank.r3{background:linear-gradient(135deg,#cd7f32,#a16207);color:#fff}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.lb-score{font-size:22px;font-weight:900;color:#a5b4fc;white-space:nowrap}
+.lb-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.lb-close-btn{
+  width:100%;padding:14px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:var(--r-sm);color:var(--muted);
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .15s,color .15s;
+}
+.lb-close-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+
+svg{display:inline-block;vertical-align:middle;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ══ START ══ -->
+<div id="screen-start" class="screen active">
+  <div class="start-card">
+    <div class="hero-icon">🧠</div>
+    <h1>조 단위 숫자 읽기</h1>
+    <p class="subtitle">
+      숫자 → <strong>한글</strong>로, 한글 → <strong>숫자</strong>로!<br/>
+      만·억·조 단위까지 순식간에 읽어보세요.
+    </p>
+    <div class="start-info">
+      <span class="info-chip">🏆 리더보드 기록</span>
+      <span class="info-chip">📊 조 단위 출제</span>
+    </div>
+    <div class="time-section">
+      <p class="time-label">⏱ 제한 시간 선택</p>
+      <div class="time-btns">
+        <button class="time-btn" data-min="1"><span class="min">1</span><span class="lbl">분</span></button>
+        <button class="time-btn" data-min="2"><span class="min">2</span><span class="lbl">분</span></button>
+        <button class="time-btn selected" data-min="3"><span class="min">3</span><span class="lbl">분</span></button>
+        <button class="time-btn" data-min="4"><span class="min">4</span><span class="lbl">분</span></button>
+        <button class="time-btn" data-min="5"><span class="min">5</span><span class="lbl">분</span></button>
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-start-game">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+      게임 시작하기
+    </button>
+    <button class="btn-secondary" id="btn-open-lb-start">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      리더보드 보기
+    </button>
+  </div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div id="screen-game" class="screen">
+  <div class="question-panel">
+    <div class="q-header">
+      <span class="q-mode-badge" id="mode-badge">숫자 → 한글</span>
+      <div class="q-stats">
+        <div class="stat-pill" id="timer-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          <span id="timer-display">2:00</span>
+        </div>
+        <div class="stat-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <span id="score-display">0점</span>
+        </div>
+      </div>
+    </div>
+    <div class="q-body">
+      <p class="q-hint">다음을 알맞게 변환하세요</p>
+      <div class="q-display num-mode" id="q-display">
+        <span id="question-text"></span>
+      </div>
+    </div>
+    <div class="q-overlay" id="correct-overlay">
+      <div class="ov-icon">✅</div>
+      <h2>정답입니다!</h2>
+      <p class="ov-pts">+10점</p>
+    </div>
+  </div>
+
+  <div class="input-panel">
+    <div class="input-display" id="input-display">
+      <span id="input-text" class="it-ph">여기에 입력됩니다...</span>
+    </div>
+    <!-- 한글 키패드 -->
+    <div class="keypad kor-pad" id="kor-keypad">
+      <button class="key" data-key="일">일</button>
+      <button class="key" data-key="이">이</button>
+      <button class="key" data-key="삼">삼</button>
+      <button class="key" data-key="사">사</button>
+      <button class="key" data-key="오">오</button>
+      <button class="key" data-key="육">육</button>
+      <button class="key" data-key="칠">칠</button>
+      <button class="key" data-key="팔">팔</button>
+      <button class="key" data-key="구">구</button>
+      <button class="key" data-key="십">십</button>
+      <button class="key" data-key="백">백</button>
+      <button class="key" data-key="천">천</button>
+      <button class="key" data-key="만">만</button>
+      <button class="key" data-key="억">억</button>
+      <button class="key" data-key="조">조</button>
+      <button class="key key-del" id="kor-del">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+      </button>
+      <button class="key key-clear c2" id="kor-clear">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+        전체 지우기
+      </button>
+      <button class="key key-submit c2" id="kor-submit">
+        정답 확인
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </button>
+    </div>
+    <!-- 숫자 키패드 -->
+    <div class="keypad num-pad" id="num-keypad" style="display:none">
+      <button class="key key-num" data-key="1">1</button>
+      <button class="key key-num" data-key="2">2</button>
+      <button class="key key-num" data-key="3">3</button>
+      <button class="key key-num" data-key="4">4</button>
+      <button class="key key-num" data-key="5">5</button>
+      <button class="key key-num" data-key="6">6</button>
+      <button class="key key-num" data-key="7">7</button>
+      <button class="key key-num" data-key="8">8</button>
+      <button class="key key-num" data-key="9">9</button>
+      <button class="key key-clear" id="num-clear">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+      </button>
+      <button class="key key-num" data-key="0">0</button>
+      <button class="key key-del" id="num-del">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+      </button>
+      <button class="key key-submit c3" id="num-submit">
+        정답 확인
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ END ══ -->
+<div id="screen-end" class="screen">
+  <div class="end-card">
+    <div class="end-trophy">🏆</div>
+    <h1>게임 종료!</h1>
+    <div class="result-box">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:6px">최종 기록</p>
+      <p class="result-score-val" id="final-score">0점</p>
+      <p class="result-meta">총 <strong id="final-count">0</strong>문제 정답!</p>
+    </div>
+    <div class="name-row">
+      <input class="name-input" id="name-input" type="text" maxlength="12" placeholder="이름을 입력하세요"/>
+      <button class="btn-save" id="btn-save-score">저장</button>
+    </div>
+    <p class="save-msg" id="save-msg"></p>
+    <div class="end-btns">
+      <button class="btn-primary" id="btn-retry">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+        다시 하기
+      </button>
+      <button class="btn-secondary" id="btn-open-lb-end">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        리더보드 보기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LEADERBOARD MODAL ══ -->
+<div id="lb-modal">
+  <div class="lb-card">
+    <div class="lb-header">
+      <div class="lb-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        리더보드
+      </div>
+      <div class="lb-actions">
+        <button class="lb-btn" id="lb-refresh">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+          새로고침
+        </button>
+        <button class="lb-btn danger" id="lb-clear">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M10,11v6M14,11v6"/><path d="M9,6V4h6v2"/></svg>
+          기록 삭제
+        </button>
+      </div>
+    </div>
+    <div class="lb-body" id="lb-body"></div>
+    <div class="lb-footer">
+      <button class="lb-close-btn" id="lb-close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// 유틸: 숫자 → 한글  (버그 수정 버전)
+// ══════════════════════════════════════
+function numberToKorean(num) {
+  if (num === 0) return '영';
+  const digits = ['','일','이','삼','사','오','육','칠','팔','구'];
+  const units  = ['','십','백','천'];
+  const groups = ['','만','억','조'];
+  let result = [], numStr = String(num), groupIdx = 0;
+
+  while (numStr.length > 0) {
+    const chunk = numStr.slice(-4);
+    numStr = numStr.slice(0, -4);
+    const chunkInt = parseInt(chunk, 10);
+    if (chunkInt === 0) { groupIdx++; continue; }
+
+    // 각 자리 빌드
+    let chunkStr = '';
+    for (let i = 0; i < chunk.length; i++) {
+      const d = parseInt(chunk[chunk.length - 1 - i], 10);
+      if (d > 0) {
+        const ds = (d === 1 && i > 0) ? '' : digits[d]; // 십·백·천 앞 '일' 생략
+        chunkStr = ds + units[i] + chunkStr;
+      }
+    }
+
+    // 그룹 단위 붙이기 (★버그 수정: chunkInt===1 조건 제거, 항상 chunkStr 사용)
+    chunkStr += groups[groupIdx];
+
+    result.unshift(chunkStr);
+    groupIdx++;
+  }
+  return result.join(' ');
+}
+
+// ══════════════════════════════════════
+// 유틸: 한글 → 숫자
+// ══════════════════════════════════════
+function koreanToNumber(korStr) {
+  const s = korStr.replace(/\s+/g, '');
+  if (!s) return 0;
+  const dmap = {일:1,이:2,삼:3,사:4,오:5,육:6,칠:7,팔:8,구:9};
+  const umap = {십:10,백:100,천:1000};
+  const gmap = {만:10000,억:100000000,조:1000000000000};
+  let total = 0, groupTotal = 0, tempDigit = 0;
+
+  for (const ch of s) {
+    if (dmap[ch] !== undefined)      { tempDigit = dmap[ch]; }
+    else if (umap[ch] !== undefined) { if (!tempDigit) tempDigit = 1; groupTotal += tempDigit * umap[ch]; tempDigit = 0; }
+    else if (gmap[ch] !== undefined) { groupTotal += tempDigit; if (!groupTotal) groupTotal = 1; total += groupTotal * gmap[ch]; groupTotal = 0; tempDigit = 0; }
+  }
+  groupTotal += tempDigit;
+  total += groupTotal;
+  return total;
+}
+
+// ══════════════════════════════════════
+// LocalStorage 리더보드 (상위 20개 보관)
+// ══════════════════════════════════════
+const LS_KEY = 'bignum_leaderboard_v1';
+
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+  catch { return []; }
+}
+function saveScore(name, score, correct) {
+  const scores = loadScores();
+  scores.push({ name: name.trim() || '익명', score, correct, date: new Date().toLocaleDateString('ko-KR') });
+  scores.sort((a, b) => b.score - a.score);
+  localStorage.setItem(LS_KEY, JSON.stringify(scores.slice(0, 20)));
+}
+function clearScores() { localStorage.removeItem(LS_KEY); }
+
+// ══════════════════════════════════════
+// 게임 상태
+// ══════════════════════════════════════
+let targetNumber = 0, mode = 'num-to-kor';
+let userInput = '', score = 0, correctCount = 0;
+let timeLeft = 120, timerInterval = null;
+let feedbackActive = false, gameActive = false; // ★버그 수정용 플래그
+
+// ══════════════════════════════════════
+// DOM
+// ══════════════════════════════════════
+const $ = id => document.getElementById(id);
+const modeBadge    = $('mode-badge'),   timerDisplay = $('timer-display');
+const timerPill    = $('timer-pill'),   scoreDisplay = $('score-display');
+const qDisplay     = $('q-display'),    questionText = $('question-text');
+const inputDisplay = $('input-display'),inputText    = $('input-text');
+const correctOverlay = $('correct-overlay');
+const korKeypad    = $('kor-keypad'),   numKeypad    = $('num-keypad');
+const finalScore   = $('final-score'), finalCount   = $('final-count');
+const nameInput    = $('name-input'),   saveMsg      = $('save-msg');
+const lbModal      = $('lb-modal'),     lbBody       = $('lb-body');
+
+// ══════════════════════════════════════
+// 화면 전환
+// ══════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(('screen-' + name)).classList.add('active');
+}
+
+// ══════════════════════════════════════
+// 타이머
+// ══════════════════════════════════════
+function formatTime(s) {
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.textContent = formatTime(timeLeft);
+    timerPill.classList.toggle('urgent', timeLeft <= 10);
+    if (timeLeft <= 0) { clearInterval(timerInterval); endGame(); }
+  }, 1000);
+}
+
+// ══════════════════════════════════════
+// 문제 생성
+// ══════════════════════════════════════
+function generateQuestion() {
+  if (!gameActive) return; // ★버그 수정: 게임 종료 후 setTimeout 콜백 차단
+
+  const rand = Math.random();
+  let len;
+  if (rand < 0.4)      len = Math.floor(Math.random()*4)+5;  // 만
+  else if (rand < 0.8) len = Math.floor(Math.random()*4)+9;  // 억
+  else                 len = 13;                               // 조
+
+  let ns = '';
+  for (let i=0; i<len; i++) ns += i===0 ? Math.ceil(Math.random()*9) : Math.floor(Math.random()*10);
+  targetNumber = parseInt(ns, 10);
+  mode = Math.random()>.5 ? 'num-to-kor' : 'kor-to-num';
+  userInput = ''; feedbackActive = false;
+
+  modeBadge.textContent = mode==='num-to-kor' ? '숫자 → 한글' : '한글 → 숫자';
+  questionText.textContent = mode==='num-to-kor' ? targetNumber.toLocaleString() : numberToKorean(targetNumber);
+  qDisplay.className = 'q-display ' + (mode==='num-to-kor' ? 'num-mode' : 'kor-mode');
+  korKeypad.style.display = mode==='num-to-kor' ? 'grid' : 'none';
+  numKeypad.style.display = mode==='num-to-kor' ? 'none' : 'grid';
+  correctOverlay.className = 'q-overlay';
+  renderInput();
+}
+
+// ══════════════════════════════════════
+// 입력 렌더링
+// ══════════════════════════════════════
+function renderInput() {
+  if (!userInput) {
+    inputText.textContent = '여기에 입력됩니다...';
+    inputText.className = 'it-ph'; return;
+  }
+  if (mode === 'num-to-kor') {
+    inputText.textContent = userInput;
+    inputText.className = 'it-kor';
+  } else {
+    const n = parseInt(userInput.replace(/,/g,''), 10);
+    inputText.textContent = isNaN(n) ? userInput : n.toLocaleString();
+    inputText.className = 'it-num';
+  }
+}
+
+// ══════════════════════════════════════
+// 키 입력
+// ══════════════════════════════════════
+function handleKey(k) { if (!feedbackActive) { userInput += k; renderInput(); } }
+function handleDel()  { if (!feedbackActive) { userInput = userInput.slice(0,-1); renderInput(); } }
+function handleClr()  { if (!feedbackActive) { userInput = ''; renderInput(); } }
+
+// ══════════════════════════════════════
+// 정답 확인
+// ══════════════════════════════════════
+function checkAnswer() {
+  if (!userInput || feedbackActive || !gameActive) return;
+  const isCorrect = mode==='num-to-kor'
+    ? koreanToNumber(userInput) === targetNumber
+    : parseInt(userInput.replace(/,/g,''), 10) === targetNumber;
+
+  if (isCorrect) {
+    feedbackActive = true;
+    score += 10; correctCount++;
+    scoreDisplay.textContent = score + '점';
+    correctOverlay.className = 'q-overlay correct';
+    setTimeout(() => { generateQuestion(); }, 1500); // gameActive 체크는 generateQuestion 내부에서
+  } else {
+    inputDisplay.classList.add('shake');
+    setTimeout(() => { inputDisplay.classList.remove('shake'); userInput=''; renderInput(); }, 480);
+  }
+}
+
+// ══════════════════════════════════════
+// 시작 / 종료
+// ══════════════════════════════════════
+let selectedMinutes = 3; // 기본 3분
+
+function startGame() {
+  score=0; correctCount=0; timeLeft=selectedMinutes*60; gameActive=true;
+  timerDisplay.textContent=formatTime(timeLeft); timerPill.classList.remove('urgent');
+  scoreDisplay.textContent='0점';
+  saveMsg.textContent=''; nameInput.value='';
+  $('btn-save-score').disabled=false; $('btn-save-score').style.opacity='';
+  showScreen('game');
+  generateQuestion();
+  startTimer();
+}
+
+// 시간 선택 버튼 이벤트
+document.querySelectorAll('.time-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedMinutes = parseInt(btn.dataset.min, 10);
+  });
+});
+function endGame() {
+  gameActive = false; // ★버그 수정: 먼저 플래그 해제
+  clearInterval(timerInterval);
+  finalScore.textContent = score + '점';
+  finalCount.textContent = correctCount;
+  showScreen('end');
+}
+
+// ══════════════════════════════════════
+// 리더보드 렌더링
+// ══════════════════════════════════════
+const medals = ['🥇','🥈','🥉'];
+function renderLeaderboard() {
+  const data = loadScores();
+  if (!data.length) {
+    lbBody.innerHTML = '<div class="lb-empty">🎮 아직 기록이 없어요!<br/>첫 번째 도전자가 되어보세요.</div>';
+    return;
+  }
+  lbBody.innerHTML = data.map((r,i) => `
+    <div class="lb-row ${i<3?'rank-'+(i+1):''}">
+      <div class="lb-rank ${i<3?'r'+(i+1):''}">
+        ${i<3 ? medals[i] : (i+1)}
+      </div>
+      <div class="lb-info">
+        <div class="lb-name">${esc(r.name)}</div>
+        <div class="lb-meta">${r.correct}문제 정답 · ${r.date}</div>
+      </div>
+      <div class="lb-score">${r.score}점</div>
+    </div>
+  `).join('');
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function openLeaderboard() { renderLeaderboard(); lbModal.classList.add('open'); }
+function closeLeaderboard(){ lbModal.classList.remove('open'); }
+
+// ══════════════════════════════════════
+// 이벤트 바인딩
+// ══════════════════════════════════════
+$('btn-start-game').onclick  = startGame;
+$('btn-retry').onclick       = startGame;
+$('btn-open-lb-start').onclick= openLeaderboard;
+$('btn-open-lb-end').onclick = openLeaderboard;
+$('lb-refresh').onclick = () => { $('lb-refresh').style.transform='rotate(360deg)'; renderLeaderboard(); setTimeout(()=>$('lb-refresh').style.transform='',400); };
+$('lb-clear').onclick   = () => { if(confirm('모든 기록을 삭제할까요?')){ clearScores(); renderLeaderboard(); } };
+$('lb-close').onclick   = closeLeaderboard;
+lbModal.addEventListener('click', e => { if(e.target===lbModal) closeLeaderboard(); });
+
+$('btn-save-score').onclick = () => {
+  saveScore(nameInput.value, score, correctCount);
+  saveMsg.textContent = '✅ 기록이 저장되었습니다!';
+  $('btn-save-score').disabled = true;
+  $('btn-save-score').style.opacity = '.5';
+};
+
+// 한글 키패드
+korKeypad.querySelectorAll('[data-key]').forEach(b => b.onclick = ()=>handleKey(b.dataset.key));
+$('kor-del').onclick   = handleDel;
+$('kor-clear').onclick = handleClr;
+$('kor-submit').onclick= checkAnswer;
+
+// 숫자 키패드
+numKeypad.querySelectorAll('[data-key]').forEach(b => b.onclick = ()=>handleKey(b.dataset.key));
+$('num-del').onclick   = handleDel;
+$('num-clear').onclick = handleClr;
+$('num-submit').onclick= checkAnswer;
+
+// 키보드
+document.addEventListener('keydown', e => {
+  if (!$('screen-game').classList.contains('active')) return;
+  if (e.key==='Enter')     { e.preventDefault(); checkAnswer(); return; }
+  if (e.key==='Backspace') { e.preventDefault(); handleDel(); return; }
+  if (e.key==='Escape')    { handleClr(); return; }
+  if (mode==='kor-to-num' && /^[0-9]$/.test(e.key)) handleKey(e.key);
+});
+</script>
+</body>
+</html>
